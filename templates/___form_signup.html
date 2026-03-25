@@ -1,0 +1,62 @@
+<form mix-post="/signup" autocomplete="off">
+      <div>
+            <label for="">first name
+                <span>{{x.USER_FIRST_NAME_MIN}} to {{x.USER_FIRST_NAME_MAX}} characters</span>
+            </label>
+          <input
+            name="user_first_name"
+            type="text"
+            placeholder="user first name"
+            mix-validate="{{x.REGEX_USER_FIRST_NAME}}"
+          />
+      </div>
+
+    <div>
+      <label for="">last name
+          <span>{{x.USER_LAST_NAME_MIN}} to {{x.USER_LAST_NAME_MAX}} characters</span>
+      </label>
+      <input
+        name="user_last_name"
+        type="text"
+        placeholder="user last name"
+        mix-validate="{{x.REGEX_USER_LAST_NAME}}"
+      />
+    </div>
+
+    <div>
+      <label for="">role
+          <span>Select a role</span>
+      </label>
+      <select title="role" name="user_role" mix-validate="{{x.REGEX_USER_ROLE}}">
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+
+
+
+    <div>
+      <label for="">email
+          <span>Enter a valid email address</span>
+      </label>
+      <input
+        name="user_email"
+        type="text"
+        placeholder="user email"
+        mix-validate="{{x.REGEX_USER_EMAIL}}"
+      />
+    </div>
+
+
+    <div>
+      <label for="">password
+          <span>{{x.USER_PASSWORD_MIN}} to {{x.USER_PASSWORD_MAX}} characters</span>
+      </label>
+      <input
+        name="user_password"
+        type="text"
+        placeholder="user password"
+        mix-validate="{{x.REGEX_USER_PASSWORD}}"
+      />
+    <button action="signup">Signup</button>
+  </form>
