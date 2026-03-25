@@ -3,8 +3,7 @@ import x
 import uuid
 import time
 from flask_session import Session
-from werkzeug.security import generate_password_hash
-from werkzeug.security import check_password_hash
+
 
 from icecream import ic
 ic.configureOutput(prefix=f'______ | ', includeContext=True)
@@ -18,22 +17,34 @@ Session(app)
 # TODO: "The next challenge. Same approach, create a fully working "signup" based on the requirements from Wash World. Design the database, think about validation, and the whole process"
 
 
-
-
-
 ###############################
 @app.get("/")
 def show_index():
     return render_template("index.html", x=x)
 
 ###############################
+
+
 @app.get("/signup")
 def show_signup():
     try:
         return render_template("signup.html", x=x)
-    except Exception as ex:
-       return ic(ex)
 
+    except Exception as ex:
+        return ic(ex)
+
+################################
+
+
+@app.get("/login")
+def show_login():
+    try:
+        user = session.get("user", "") or session.get("admin", "")
+        if not user:
+            return render_template("login.html", x=x)
+        return redirect("/profile")
+    except Exception as ex:
+        return ic(ex)
 
 
 ###############################
@@ -47,23 +58,25 @@ def signup():
         user_last_name = x.validate_user_last_name()
         user_email = x.validate_user_email()
         user_password = x.validate_user_password()
+
+        user_role = request.form.get("user_role", "").strip()
+
         user_role = x.validate_user_role(user_role)
-
-
-       
 
         user_pk = uuid.uuid4().hex
         user_created_at = int(time.time())
         user_updated_at = int(time.time())
+        user_deleted_at = int(time.time())
 
         db, cursor = x.db()
 
-        q = "INSERT INTO users VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
-        cursor.execute(q, (user_pk, user_first_name, user_last_name, user_email, user_password,user_role, user_created_at, user_updated_at))
+        q = "INSERT INTO users VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        cursor.execute(q, (user_pk, user_email, user_password, user_first_name,
+                       user_last_name, user_role, user_created_at, user_updated_at, user_deleted_at))
 
         db.commit()
 
-        form_signup = render_template("___form_signup.html")
+        form_signup = render_template("___form_signup.html", x=x)
 
         return f"""
         <browser mix-replace="form">{form_signup}</browser>
@@ -83,9 +96,56 @@ def signup():
         if "db" in locals():
             db.close()
 
-        
+
 ###############################
 
+
+@app.post("/api-login")
+def api_login():
+    try:
+        user_email = x.validate_user_email()
+        user_password = x.validate_user_password()
+
+        db, cursor = x.db()
+
+        q = "SELECT * FROM users WHERE user_email = %s"
+        cursor.execute(q, (user_email,))
+
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({"status": "error", "message": "Invalid credentials"}), 400
+
+        if user["user_password"] != user_password:
+            return jsonify({"status": "error", "message": "Invalid credentials"}), 400
+
+        safe_user = dict(user)
+        safe_user.pop("user_password", None)
+        session["user"] = safe_user
+
+        return f"""<browser mix-redirect="/profile"></browser>"""
+
+    except Exception as ex:
+        ic(ex)
+
+        if "company_exception user_email" in str(ex):
+            return jsonify({"status": "error", "message": "invalid email format"}), 400
+
+        if "company_exception user_password" in str(ex):
+            error_message = f"user password {x.USER_PASSWORD_MIN} to {x.USER_PASSWORD_MAX} characters"
+            return jsonify({"status": "error", "message": error_message}), 400
+
+        return jsonify({"status": "error", "message": "an unexpected error occurred"}), 500
+
+    finally:
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
+
+#############################
+"""
 
 @app.post("/login")
 def login():
@@ -116,6 +176,8 @@ def login():
             cursor.close()
         if "db" in locals():
             db.close()
+
+"""
 
 
 ###############################
