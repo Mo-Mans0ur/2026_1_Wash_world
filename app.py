@@ -39,12 +39,60 @@ def show_signup():
 @app.get("/login")
 def show_login():
     try:
-        user = session.get("user", "") or session.get("admin", "")
-        if not user:
+        
             return render_template("login.html", x=x)
-        return redirect("/profile")
     except Exception as ex:
         return ic(ex)
+
+
+###############################
+@app.get("/profile")
+def show_profile():
+    try:
+        user = session.get("user", "") or session.get("admin", "")
+        if not user:
+            return redirect("/login")
+
+        db, cursor = x.db()
+
+        q = """
+            SELECT 
+            cars.car_plate_number,
+            cars.car_model,
+            cars.car_brand,
+            cars.car_year,
+            cars.car_color
+            FROM user_cars
+            INNER JOIN cars
+                ON user_cars.cars_pk = cars.cars_pk
+            WHERE user_cars.user_pk = %s
+        """
+        cursor.execute(q, (user["user_pk"],))
+        cars = cursor.fetchall()
+
+        return render_template("profile.html", x=x, user=user, cars=cars)
+    except Exception as ex:
+        ic(ex)
+
+        return jsonify({"status": "error", "message": "nope"}), 500
+    finally:
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
+################################
+@x.no_cache
+@app.get("/logout")
+def logout():
+    try:
+        session.clear()
+        return redirect("/login")
+    except Exception as ex:
+        ic(ex)
+        return "ups"
+
+
 
 
 ###############################
@@ -106,7 +154,12 @@ def api_login():
         user_email = x.validate_user_email()
         user_password = x.validate_user_password()
 
+        
+
         db, cursor = x.db()
+
+        
+
 
         q = "SELECT * FROM users WHERE user_email = %s"
         cursor.execute(q, (user_email,))
@@ -118,12 +171,14 @@ def api_login():
 
         if user["user_password"] != user_password:
             return jsonify({"status": "error", "message": "Invalid credentials"}), 400
+        
+        user_role = x.validate_user_role(user["user_role"])
 
         safe_user = dict(user)
         safe_user.pop("user_password", None)
         session["user"] = safe_user
 
-        return f"""<browser mix-redirect="/profile"></browser>"""
+        return redirect("/profile")
 
     except Exception as ex:
         ic(ex)
@@ -179,6 +234,83 @@ def login():
 
 """
 
+
+################################
+@app.get("/api-user-cars/<user_pk>")
+def get_user_cars(user_pk):
+    try:
+        db, cursor = x.db()
+
+        q = """
+            SELECT cars.*
+            FROM user_cars
+            INNER JOIN cars
+            ON user_cars.cars_pk = cars.cars_pk
+            WHERE user_cars.user_pk = %s
+            """
+        cursor.execute(q, (user_pk,))
+        car = cursor.fetchall()
+
+        if not car:
+            return jsonify({"status": "error", "message": "Car not found"}), 404
+
+        return jsonify({"status": "ok", "car": car})
+    except Exception as ex:
+        ic(ex)
+        return jsonify({"status": "error", "message": "an unexpected error occurred"}), 500
+    finally:
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
+##############################
+@app.post("/create-car")
+def create_car():
+    try:
+
+        user = session.get("user")
+
+        if not user:
+            return redirect("/login")
+        
+        car_plate_number = x.validate_car_number_plate()
+        car_model = x.validate_car_model()
+        car_brand = x.validate_car_brand()
+        car_year = x.validate_car_year()
+        car_color = x.validate_car_color()
+
+
+
+        car_pk = uuid.uuid4().hex
+        
+
+        db, cursor = x.db()
+
+        q = """
+            INSERT INTO cars (cars_pk, car_plate_number, car_model, car_brand, car_year, car_color)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(q, (car_pk, car_plate_number, car_model, car_brand, car_year, car_color))
+
+        q = """
+        INSERT INTO user_cars (user_pk, cars_pk)
+        VALUES (%s, %s)
+        """
+        cursor.execute(q, (user["user_pk"], car_pk))
+        db.commit()
+
+        return redirect("/profile")
+
+    except Exception as ex:
+        ic(ex)
+        return jsonify({"status": "error", "message": "an unexpected error occurred"}), 500
+
+    finally:
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 ###############################
 @app.post("/api-get-name")

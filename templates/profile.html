@@ -3,11 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Profile</title>
 </head>
-<body>
+<tbody>
+      <a href="/logout">Logout</a>
         <h1>Profile</h1>
+        <p>Role: <strong>{{ user.user_role }}</strong></p>
+        <h2>Cars owned</h2>
+        {% if cars %}
+            <table border="1" cellpadding="10">
+                <thead>
+                    <tr>
+                        <th>
+                            Plate Number
+                        </th>
+                        <th>Model</th>
+                        <th>Brand</th>
+                        <th>Year</th>
+                        <th>Color</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for car in cars %}
+                    <tr>
+                        <td>{{ car.car_plate_number }}</td>
+                        <td>{{ car.car_model }}</td>
+                        <td>{{ car.car_brand }}</td>
+                        <td>{{ car.car_year }}</td>
+                        <td>{{ car.car_color }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p>No cars linked to this user yet.</p>
+            {% endif %}
 
-        <p>cars owned</p>
+
+
+
+        <h4>Add a new car</h4>
+        {% include "___form_create_car.html" %}
+
 </body>
 </html>

@@ -1,0 +1,39 @@
+<form action="/create-car" method="post" autocomplete="off">
+    <div>
+        <label for="">car number plate
+            <span>max 8 characters, the first two have to be letters and the rest numbers</span> 
+        </label>
+
+        <input type="text" name="car_number_plate" placeholder="Plate number" mix-validate="{{ x.CAR_NUMBER_PLATE_REGEX }}">
+    </div>
+
+    <div>
+        <label for="">car model
+            <span>max {{ x.CAR_MODEL_MAX }} characters</span>
+        </label>
+        <input type="text" name="car_model" placeholder="Car model" mix-validate="{{ x.CAR_MODEL_REGEX }}">
+    </div>
+
+
+    <div>
+        <label for="">car brand
+            <span>max {{ x.CAR_BRAND_MAX }} characters</span>
+        </label>
+        <input type="text" name="car_brand" placeholder="Car brand" mix-validate="{{ x.CAR_BRAND_REGEX }}">
+    </div>
+
+    <div>
+        <label for="">car year
+            <span>between {{ x.CAR_YEAR_MIN }} and {{ x.CAR_YEAR_MAX }}</span>
+        </label>
+        <input type="text" name="car_year" placeholder="Car year" mix-validate="{{ x.CAR_YEAR_REGEX }}">
+    </div>
+
+    <div>
+        <label for="">car color
+            <span>max {{ x.CAR_COLOR_MAX }} characters</span>
+        </label>
+        <input type="text" name="car_color" placeholder="Car color" mix-validate="{{ x.CAR_COLOR_REGEX }}">
+    </div>
+    <button type="submit">Add car</button>
+</form>
