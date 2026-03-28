@@ -163,3 +163,13 @@ def validate_car_color():
         raise Exception("company_exception car_color")
     return car_color
 
+###############################
+SEARCH_QUERY_MIN = 2
+SEARCH_QUERY_MAX = 50
+REGEX_SEARCH_QUERY = rf"^[A-Za-zÆØÅæøå -]{{{SEARCH_QUERY_MIN},{SEARCH_QUERY_MAX}}}$"
+
+def validate_search_query():
+    search_query = request.args.get("search", "").strip()
+    if not re.match(REGEX_SEARCH_QUERY, search_query):
+        raise Exception("company_exception search_query")
+    return search_query

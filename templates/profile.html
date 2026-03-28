@@ -1,49 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profile</title>
-</head>
-<tbody>
-      <a href="/logout">Logout</a>
-        <h1>Profile</h1>
-        <p>Role: <strong>{{ user.user_role }}</strong></p>
-        <h2>Cars owned</h2>
-        {% if cars %}
-            <table border="1" cellpadding="10">
-                <thead>
-                    <tr>
-                        <th>
-                            Plate Number
-                        </th>
-                        <th>Model</th>
-                        <th>Brand</th>
-                        <th>Year</th>
-                        <th>Color</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for car in cars %}
-                    <tr>
-                        <td>{{ car.car_plate_number }}</td>
-                        <td>{{ car.car_model }}</td>
-                        <td>{{ car.car_brand }}</td>
-                        <td>{{ car.car_year }}</td>
-                        <td>{{ car.car_color }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-                <p>No cars linked to this user yet.</p>
-            {% endif %}
+  </head>
+  <body>
+    <a href="/logout">Logout</a>
+    <h1>Profile</h1>
 
+    <p>Role: <strong>{{ user.user_role }}</strong></p>
 
+    {% if user.user_role == 'admin' %}
+   
+    <h2>Search Users</h2>
 
+    {% include "___form_search.html" %} {% if search_query %}
+    <h3>Search results for "{{ search_query }}"</h3>
 
-        <h4>Add a new car</h4>
-        {% include "___form_create_car.html" %}
+    {% if users %}
+    <table border="1" cellpadding="10">
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Email</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ u.user_first_name }}</td>
+          <td>{{ u.user_last_name }}</td>
+          <td>{{ u.user_email }}</td>
+          <td>{{ u.user_role }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No users found.</p>
+    {% endif %} {% endif %}
 
-</body>
+    <h2>Cars owned</h2>
+    {% if cars %}
+    <table border="1" cellpadding="10">
+      <thead>
+        <tr>
+          <th>Plate Number</th>
+          <th>Model</th>
+          <th>Brand</th>
+          <th>Year</th>
+          <th>Color</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for car in cars %}
+        <tr>
+          <td>{{ car.car_plate_number }}</td>
+          <td>{{ car.car_model }}</td>
+          <td>{{ car.car_brand }}</td>
+          <td>{{ car.car_year }}</td>
+          <td>{{ car.car_color }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No cars linked to this user yet.</p>
+    {% endif %}
+
+    <h4>Add a new car</h4>
+    {% include "___form_create_car.html" %} {% endif %}
+  </body>
 </html>

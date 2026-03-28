@@ -73,7 +73,6 @@ def show_profile():
         return render_template("profile.html", x=x, user=user, cars=cars)
     except Exception as ex:
         ic(ex)
-
         return jsonify({"status": "error", "message": "nope"}), 500
     finally:
         if "cursor" in locals():
@@ -94,6 +93,49 @@ def logout():
 
 
 
+##############################
+@app.get("/search")
+def search():
+    try:
+        user = session.get("user", "") or session.get("admin", "")
+
+        if not user:
+            return redirect("/login")
+        
+        if user["user_role"] != "admin":
+            return jsonify({"status": "error", "message": "Unauthorized"}), 403
+        
+        search_query = request.args.get("q", "").strip()
+
+        db, cursor = x.db()
+
+        users = []
+
+        if search_query:
+            q = """
+                SELECT user_email, user_first_name, user_last_name
+                FROM users
+                WHERE user_first_name LIKE %s OR user_last_name LIKE %s
+                ORDER BY user_first_name DESC, user_last_name DESC
+                """
+            
+            search_value = f"%{search_query}%"
+            cursor.execute(q, (search_value, search_value))
+            users = cursor.fetchall()
+
+        return render_template("profile.html", x=x, user=user, users=users, search_query=search_query)
+
+
+    except Exception as ex:
+        ic(ex)
+        return jsonify({"status": "error", "message": "an unexpected error occurred"}), 500
+    finally:
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
+        
 
 ###############################
 ########### APIS ##############
